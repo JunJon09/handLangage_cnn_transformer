@@ -11,7 +11,7 @@ from torchvision import transforms
 import CNN
 import Transformer
 
-def video_to_frames(video_file, resize=(10, 10)):
+def video_to_frames(video_file, resize=(15, 15)):
     cap = cv2.VideoCapture(video_file)
     frames = []
 
@@ -39,12 +39,12 @@ class SignLanguageDataset(Dataset):
     def __init__(self, directory, transform=None):
         self.directory = directory
         self.transform = transform
-        self.classes = [d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))] 
+        self.classes = [d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))]
 
         self.data = []
         for label, class_dir in enumerate(self.classes):
             class_path = os.path.join(directory, class_dir)
-            video_files = [f for f in os.listdir(class_path) if f.endswith('.mp4')]  # MP4ファイルだけを対象とする
+            video_files = [f for f in os.listdir(class_path) if f.endswith('.mp4')]
             for video_file in video_files:
                 video_path = os.path.join(class_path, video_file)
                 frames = video_to_frames(video_path)
@@ -53,7 +53,7 @@ class SignLanguageDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def __getitem__(self, idx): 
+    def __getitem__(self, idx):
         frames, label = self.data[idx]
         return frames, label
     
@@ -65,19 +65,20 @@ class CompleteModel(nn.Module):
         self.transformer = transformer
         self.classifier = classifier
 
+
     def forward(self, x):
         frames = x.transpose((3, 0, 1, 2))  # PyTorchが期待する形式に変更: (C, T, H, W)
         frames = np.expand_dims(frames, axis=0)  # バッチの次元を追加: (N, C, T, H, W)
         frames = torch.tensor(frames, dtype=torch.float32)  # NumPy配列をTensorに変換
         x = self.cnn(frames)
-        # = x.view(x.size(0), -1).permute(1, 0)
         cnn_output = x.squeeze(0)
         cnn_output = cnn_output.view(cnn_output.size(0), -1)  # (T, C*H*W)
         cnn_output = cnn_output.permute(1, 0)  # (C*H*W, T) となっているため (T, C*H*W)
         cnn_output = F.pad(cnn_output, (0, model_dim - cnn_output.size(1)), "constant", 0)  # 必要な場合はパディングを追加
         x = cnn_output.unsqueeze(1)  # バッチ次元を追加 (T, N, model_dim)
         x = self.transformer(x)
-        #x = self.classifier(x)
+        x = x.mean(dim=0, keepdim=True)  # Transformer出力の平均を取る
+        x = self.classifier(x)  # Classifierを適用
         return x
 
 
@@ -101,26 +102,22 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # 訓練ループ
 
-for epoch in range(10):  # 10エポック訓練
+for epoch in range(1):  # 1エポック訓練（例として1エポックにしています）
     for inputs, labels in dataset:
         optimizer.zero_grad()
         outputs = model(inputs)
-        outputs = outputs.squeeze(1)
-        labels_tensor = torch.full((len(outputs),), 0, dtype=torch.long)
-        loss = criterion(outputs, labels_tensor)
+        outputs = outputs.squeeze(1)  # ビデオ全体に対する予測
+        labels_tensor = torch.tensor([labels], dtype=torch.long)  # ビデオのラベル
+        loss = criterion(outputs, labels_tensor)  # ラベルは1つのビデオに対して1つの値
         loss.backward()
         optimizer.step()
     print(f'Epoch {epoch+1}, Loss: {loss.item()}')
 
-test_video = video_to_frames('./01.mp4')
-
 # 推論
 model.eval()
+test_video = video_to_frames('./b.mp4')
 with torch.no_grad():
     prediction = model(test_video)
-    # 各ビデオフレームの予測結果の平均を計算
-    prediction_mean = torch.mean(prediction, dim=0)
-    # 最大の確率を持つクラスのインデックスを取得
-    predicted_class = torch.argmax(prediction_mean)
+    predicted_class = torch.argmax(prediction.squeeze(), dim=0)  # 最終的なクラス予測
+    print(predicted_class)
     print(f'The predicted class for 01.mp4 is: {dataset.classes[predicted_class.item()]}')
-
