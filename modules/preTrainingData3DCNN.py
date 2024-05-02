@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 import machinLearning
 
 # モデルのインスタンス化、損失関数、オプティマイザーの設定
-model = machinLearning.Video3DCNN()
+model = machinLearning.Video3DCNNModel()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
@@ -25,6 +25,7 @@ def train_model(model, data_loader, criterion, optimizer, num_epochs=5):
             optimizer.zero_grad()
             print(labels)
             outputs = model(inputs)
+            print(outputs.size(), labels.size())
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()

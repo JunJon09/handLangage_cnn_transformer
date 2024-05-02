@@ -11,19 +11,20 @@ from torchvision import transforms
 import CNN
 import Transformer
 
-def video_to_frames(video_file, resize=(15, 15)):
-    cap = cv2.VideoCapture(video_file)
-    frames = []
+class loadVideos():
+    def video_to_frames(video_file, resize=(15, 15)):
+        cap = cv2.VideoCapture(video_file)
+        frames = []
 
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break
-        frame = cv2.resize(frame, resize)
-        frames.append(frame)
-    
-    cap.release()
-    return np.array(frames)
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+            frame = cv2.resize(frame, resize)
+            frames.append(frame)
+
+        cap.release()
+        return np.array(frames)
 
 class SignLanguageClassifier(nn.Module):
     def __init__(self, model_dim, num_classes):
@@ -40,14 +41,13 @@ class SignLanguageDataset(Dataset):
         self.directory = directory
         self.transform = transform
         self.classes = [d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))]
-
         self.data = []
         for label, class_dir in enumerate(self.classes):
             class_path = os.path.join(directory, class_dir)
             video_files = [f for f in os.listdir(class_path) if f.endswith('.mp4')]
             for video_file in video_files:
                 video_path = os.path.join(class_path, video_file)
-                frames = video_to_frames(video_path)
+                frames = loadVideos.video_to_frames(video_path)
                 self.data.append((frames, label))
 
     def __len__(self):
@@ -56,8 +56,8 @@ class SignLanguageDataset(Dataset):
     def __getitem__(self, idx):
         frames, label = self.data[idx]
         return frames, label
-    
-# モデルの定義 (Simple3DCNNとTransformerModelを組み合わせ)
+
+# モデルの定義 (SimpleCNNとTransformerModelを組み合わせ)
 class CompleteModel(nn.Module):
     def __init__(self, cnn, transformer, classifier):
         super(CompleteModel, self).__init__()
@@ -115,7 +115,7 @@ for epoch in range(1):  # 1エポック訓練（例として1エポックにし�
 
 # 推論
 model.eval()
-test_video = video_to_frames('./b.mp4')
+test_video = loadVideos.video_to_frames('./b.mp4')
 with torch.no_grad():
     prediction = model(test_video)
     predicted_class = torch.argmax(prediction.squeeze(), dim=0)  # 最終的なクラス予測
