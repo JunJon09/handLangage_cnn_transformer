@@ -4,7 +4,7 @@ import torch
 import math
 
 
-#CNNのモデル
+# CNNのモデル
 class Video3DCNNModel(nn.Module):
     def __init__(self):
         super(Video3DCNNModel, self).__init__()
@@ -25,14 +25,24 @@ class Video3DCNNModel(nn.Module):
         return x
 
 
-#Transformerのモデル
+# Transformerのモデル
 class TransformerModel(nn.Module):
-    def __init__(self, input_dim, model_dim, num_heads, num_layers, num_classes, dropout=0.1):
+    def __init__(
+        self, input_dim, model_dim, num_heads, num_layers, num_classes, dropout=0.1
+    ):
         super(TransformerModel, self).__init__()
-        self.pos_encoder = PositionalEncoding(model_dim, input_dim)  # 500は仮の最大シーケンス長
-        transformer_layer = nn.TransformerEncoderLayer(d_model=model_dim, nhead=num_heads, dropout=dropout)
-        self.transformer_encoder = nn.TransformerEncoder(transformer_layer, num_layers=num_layers)
-        self.decoder = nn.Linear(model_dim, input_dim)  # 出力サイズをinput_dimに合わせる
+        self.pos_encoder = PositionalEncoding(
+            model_dim, input_dim
+        )  # 500は仮の最大シーケンス長
+        transformer_layer = nn.TransformerEncoderLayer(
+            d_model=model_dim, nhead=num_heads, dropout=dropout
+        )
+        self.transformer_encoder = nn.TransformerEncoder(
+            transformer_layer, num_layers=num_layers
+        )
+        self.decoder = nn.Linear(
+            model_dim, input_dim
+        )  # 出力サイズをinput_dimに合わせる
         self.classifier = nn.Linear(input_dim, num_classes)  # クラス分類のための出力層
 
     def forward(self, src):
@@ -41,6 +51,7 @@ class TransformerModel(nn.Module):
         output = self.decoder(output)
         output = self.classifier(output)
         output = F.softmax(output, dim=1)
+        # max_indices = torch.argmax(output, dim=1)
         return output
 
 
@@ -50,16 +61,15 @@ class PositionalEncoding(nn.Module):
         self.dropout = nn.Dropout(p=0.1)
 
         position = torch.arange(max_len).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, d_model, 2) * -(math.log(10000.0) / d_model))
+        div_term = torch.exp(
+            torch.arange(0, d_model, 2) * -(math.log(10000.0) / d_model)
+        )
         pe = torch.zeros(max_len, d_model)
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
-        self.register_buffer('pe', pe)
+        self.register_buffer("pe", pe)
 
     def forward(self, x):
-        print(x.size())
-        x = x + self.pe[:x.size(0), :x.size(1)]
+
+        x = x + self.pe[: x.size(0), : x.size(1)]
         return self.dropout(x)
-
-
-
