@@ -28,9 +28,9 @@ def DatasetSplit():
 
         basis_copy_path = "../LSA64/all/" + file_name
         x = i % 50
-        if 0 <= x and x <10: # pre
+        if 0 <= x and x <30: # pre
             next_path = "../test/pre/" + str(class_count).zfill(3) + "/" + file_name
-        elif 10 <= x and x < 40: #train
+        elif 30 <= x and x < 40: #train
             next_path = "../test/train/" + str(class_count).zfill(3) + "/" + file_name
         else:#test
             next_path = "../test/test/" + str(class_count).zfill(3) + "/"  + file_name
