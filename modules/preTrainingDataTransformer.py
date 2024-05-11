@@ -15,7 +15,7 @@ def train_transformer(model, data_loader,val_loader, criterion, optimizer, num_e
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, labels)
-            loss.backward(retain_graph=True)
+            loss.backward()
             optimizer.step()
             total_train_loss += loss.item()
 

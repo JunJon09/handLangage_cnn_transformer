@@ -40,7 +40,7 @@ class TransformerModel(nn.Module):
         super(TransformerModel, self).__init__()
         self.pos_encoder = PositionalEncoding(
             model_dim, input_dim
-        )  # 500は仮の最大シーケンス長
+        )
         transformer_layer = nn.TransformerEncoderLayer(
             d_model=model_dim, nhead=num_heads, dropout=dropout
         )
@@ -49,7 +49,7 @@ class TransformerModel(nn.Module):
         )
         self.decoder = nn.Linear(
             model_dim, input_dim
-        )  # 出力サイズをinput_dimに合わせる
+        )
         self.classifier = nn.Linear(input_dim, num_classes)  # クラス分類のための出力層
 
     def forward(self, src):
