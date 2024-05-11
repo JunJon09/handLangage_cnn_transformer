@@ -69,21 +69,39 @@ class DataFix():
         if os.path.exists(model_path):
             state_dict = torch.load(model_path)
             model.load_state_dict(state_dict)
-        file_path = "../data/RGBdata/movie_cnn.pkl"
+        file_path = "../data/RGBdata/movie_cnn_pre.pkl"
         with open(file_path, 'rb') as f:
             self.pre = pickle.load(f)
-        cnn_data = []
-        labels_data = []
+        cnn_pre_data = []
+        labels_pre_data = []
+        print("hg")
         for i, (inputs, labels) in enumerate(self.pre):
             outputs = model(inputs)
             if i == 0:
-                cnn_data = outputs
-                labels_data = labels
+                cnn_pre_data = outputs
+                labels_pre_data = labels
                 continue
-            cnn_data = self.add_tensor(cnn_data, outputs)
-            labels_data = self.add_tensor(labels_data, labels)
+            cnn_pre_data = self.add_tensor(cnn_pre_data, outputs)
+            labels_pre_data = self.add_tensor(labels_pre_data, labels)
+        print("事前データをCNNに通せた")
+        #train
+        file_path = "../data/RGBdata/movie_cnn_train.pkl"
+        with open(file_path, 'rb') as f:
+            self.train = pickle.load(f)
+        cnn_train_data = []
+        labels_train_data = []
+        for i, (inputs, labels) in enumerate(self.train):
+            outputs = model(inputs)
+            if i == 0:
+                cnn_train_data = outputs
+                labels_train_data = labels
+                continue
+            cnn_train_data = self.add_tensor(cnn_train_data, outputs)
+            labels_train_data = self.add_tensor(labels_train_data, labels)
 
-        return cnn_data, labels_data.float()
+        print("検証データをCNNに通せた")
+
+        return cnn_pre_data, cnn_train_data, labels_pre_data.float(), labels_train_data.float()
 
     def add_tensor(self, existing_tensors, new_tensor):
         return torch.cat((existing_tensors, new_tensor), dim=0)
