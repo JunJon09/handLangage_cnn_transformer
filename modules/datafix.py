@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import pickle
 import machinLearning
-
+import gc
 
 #データの加工、呼び出しなどを行うclass
 class DataFix():
@@ -17,7 +17,7 @@ class DataFix():
         self.data_dict = {}
 
     def getPreData(self,):
-        #作業を効率化するためのコード
+        # #作業を効率化するためのコード
         file_path = "../data/RGBdata/movie_cnn_pre.pkl"
         with open(file_path, 'rb') as f:
             self.pre = pickle.load(f)
@@ -83,6 +83,8 @@ class DataFix():
                 continue
             cnn_pre_data = self.add_tensor(cnn_pre_data, outputs)
             labels_pre_data = self.add_tensor(labels_pre_data, labels)
+        del self.pre
+        gc.collect()
         print("事前データをCNNに通せた")
         #train
         file_path = "../data/RGBdata/movie_cnn_train.pkl"
@@ -98,6 +100,8 @@ class DataFix():
                 continue
             cnn_train_data = self.add_tensor(cnn_train_data, outputs)
             labels_train_data = self.add_tensor(labels_train_data, labels)
+        del self.train
+        gc.collect()
 
         print("検証データをCNNに通せた")
 
@@ -120,5 +124,5 @@ class DataFix():
         cap.release()
         return np.array(frames)
 
-a = DataFix()
-a.getPreData()
+# a = DataFix()
+# a.getPreData()
