@@ -69,7 +69,7 @@ class DataFix():
         if os.path.exists(model_path):
             state_dict = torch.load(model_path)
             model.load_state_dict(state_dict)
-        file_path = "../data/RGBdata/movie_cnn_pre.pkl"
+        file_path = "./movie_cnn_pre.pkl"
         with open(file_path, 'rb') as f:
             self.pre = pickle.load(f)
         cnn_pre_data = []
@@ -87,7 +87,7 @@ class DataFix():
         gc.collect()
         print("事前データをCNNに通せた")
         #train
-        file_path = "../data/RGBdata/movie_cnn_train.pkl"
+        file_path = "./movie_cnn_train.pkl"
         with open(file_path, 'rb') as f:
             self.train = pickle.load(f)
         cnn_train_data = []
