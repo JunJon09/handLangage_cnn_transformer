@@ -4,6 +4,5 @@
 /lib
 /share
 *.mp4
-*.pth
 *.pkl
 /data

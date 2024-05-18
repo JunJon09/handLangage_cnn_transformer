@@ -12,7 +12,7 @@ batch_sizeを使用して、二つまとめて処理
 
 
 # 訓練ループ
-def train_model(model, data_loader, val_loader, criterion, optimizer, num_epochs=5):
+def train_model(model, data_loader, val_loader, criterion, optimizer, num_epochs=10):
     for epoch in range(num_epochs):
         model.train()
         print(epoch)
@@ -20,6 +20,7 @@ def train_model(model, data_loader, val_loader, criterion, optimizer, num_epochs
         for inputs, labels in data_loader:
             optimizer.zero_grad()
             outputs = model(inputs)
+            print(outputs)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
@@ -40,10 +41,9 @@ model = machinLearning.Video3DCNNModel()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-#data_loader = DataLoader([(torch.randn(3, 10, 15, 15), torch.tensor(1)) for _ in range(10)], batch_size=1, shuffle=True)
-
 data_class = datafix.DataFix()
-data_class.getPreData()
+data_class.get_pre_and_train()
+
 train_model(model,data_class.pre, data_class.train, criterion, optimizer)
 
 # モデルの重みを保存
