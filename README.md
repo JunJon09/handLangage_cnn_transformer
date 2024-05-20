@@ -80,4 +80,11 @@ pip install -r requirements.txt
 Windowsを使用する場合は、Microsoft Visual C++ Build Tools のインストール(https://visualstudio.microsoft.com/downloads/)してもらい、Windows 10 SDKと、最新のMSVCのパッケージも入れる
 
 
+## dockerでの立ち上げ
+
+```bash
+$ docker build -t handlang .
+$ docker run -it handlang /bin/bash
+```
+
 
